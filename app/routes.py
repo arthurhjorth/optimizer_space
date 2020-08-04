@@ -21,7 +21,9 @@ def before_request():
 @app.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
-    return render_template('index.html')
+    activities = Activity.query.all()
+    print(activities)
+    return render_template('index.html', activities=activities)
 
 
 @app.route('/explore')
@@ -187,7 +189,8 @@ def unfollow(username):
 def add_activity():
     form = AddActivityForm()
     if form.validate_on_submit():
-        act = Activity(name = form.name, owner = current_user.id)
+        act = Activity(name = form.name.data, owner = current_user.id)
+        db.session.add(act)
         db.session.commit()
-        return redirect(url_for('home')
+        return redirect(url_for('index'))
     return render_template('add_activity.html', form=form)
