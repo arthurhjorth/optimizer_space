@@ -12,6 +12,11 @@ class LoginForm(FlaskForm):
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
 
+class AddActivityForm(FlaskForm):
+    name = StringField('Aktivitetens Navn', validators=[DataRequired()])
+    password = StringField('Evt. kodeord')
+    submit = SubmitField('Lav Aktivitet')
+
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])

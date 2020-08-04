@@ -4,8 +4,8 @@ from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, EditProfileForm, \
-    EmptyForm, PostForm, ResetPasswordRequestForm, ResetPasswordForm
-from app.models import User, Post
+    EmptyForm, PostForm, ResetPasswordRequestForm, ResetPasswordForm, AddActivityForm
+from app.models import User, Post, Activity
 from app.email import send_password_reset_email
 
 
@@ -18,25 +18,10 @@ def before_request():
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
+@app.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
-    form = PostForm()
-    if form.validate_on_submit():
-        post = Post(body=form.post.data, author=current_user)
-        db.session.add(post)
-        db.session.commit()
-        flash('Your post is now live!')
-        return redirect(url_for('index'))
-    page = request.args.get('page', 1, type=int)
-    posts = current_user.followed_posts().paginate(
-        page, app.config['POSTS_PER_PAGE'], False)
-    next_url = url_for('index', page=posts.next_num) \
-        if posts.has_next else None
-    prev_url = url_for('index', page=posts.prev_num) \
-        if posts.has_prev else None
-    return render_template('index.html', title='Home', form=form,
-                           posts=posts.items, next_url=next_url,
-                           prev_url=prev_url)
+    return render_template('index.html')
 
 
 @app.route('/explore')
@@ -194,3 +179,15 @@ def unfollow(username):
         return redirect(url_for('user', username=username))
     else:
         return redirect(url_for('index'))
+
+
+
+@app.route('/add_activity', methods=['POST', 'GET'])
+@login_required
+def add_activity():
+    form = AddActivityForm()
+    if form.validate_on_submit():
+        act = Activity(name = form.name, owner = current_user.id)
+        db.session.commit()
+        return redirect(url_for('home')
+    return render_template('add_activity.html', form=form)

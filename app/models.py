@@ -97,7 +97,7 @@ class Activity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(40))
     open_until = db.Column(db.DateTime, default=datetime.now)
-    owner = user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    owner = db.Column(db.Integer, db.ForeignKey('user.id'))
     data_points = db.relationship('DataPoint', backref='activity')
 
 class DataPoint(db.Model):
