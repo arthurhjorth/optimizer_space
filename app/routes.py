@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, flash, redirect, url_for, request, json
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 from app import app, db
@@ -17,7 +17,6 @@ def before_request():
 
 
 @app.route('/', methods=['GET', 'POST'])
-@app.route('/index', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
@@ -183,6 +182,16 @@ def unfollow(username):
         return redirect(url_for('index'))
 
 
+@app.route('/get_open_activities')
+def get_open_activities():
+    activities = [[a.id, a.name] for a in Activity.query.all()]
+    nl_list  = to_logo_list_str(activities)
+    response = app.response_class(
+        response=json.dumps(nl_list),
+        status=200,
+        mimetype='application/json'
+    )
+    return  response
 
 @app.route('/add_activity', methods=['POST', 'GET'])
 @login_required
@@ -194,3 +203,35 @@ def add_activity():
         db.session.commit()
         return redirect(url_for('index'))
     return render_template('add_activity.html', form=form)
+
+
+
+@app.route('/add_data', methods=['POST', 'GET', 'PUT'])
+def add_data_point():
+    args = request.args.to_dict()
+    print(args)
+    response = app.response_class(
+        response=json.dumps("OK"),
+        status=200,
+        mimetype='application/json'
+    )
+    return response
+
+
+def to_logo_list_str(alist):
+    ret_str = ""
+    for char in str(alist):
+        if char == "(":
+            ret_str = ret_str + "["
+        elif char == ")":
+            ret_str = ret_str + "]"
+        elif char == ",":
+            ret_str = ret_str + " "
+        elif char == "'":
+            ret_str = ret_str + '"'
+        else:
+            ret_str = ret_str + char
+    return(ret_str)
+        
+
+

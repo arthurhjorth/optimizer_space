@@ -100,6 +100,11 @@ class Activity(db.Model):
     owner = db.Column(db.Integer, db.ForeignKey('user.id'))
     data_points = db.relationship('DataPoint', backref='activity')
 
+    def __repr__(self):
+        return 'Activity {}: {}'.format(self.id, self.name)
+
+
+
 class DataPoint(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     data = db.Column(JSON, default = {})
