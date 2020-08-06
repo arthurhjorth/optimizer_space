@@ -5,7 +5,7 @@ from werkzeug.urls import url_parse
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, EditProfileForm, \
     EmptyForm, PostForm, ResetPasswordRequestForm, ResetPasswordForm, AddActivityForm
-from app.models import User, Post, Activity
+from app.models import User, Post, Activity, DataPoint
 from app.email import send_password_reset_email
 
 
@@ -209,14 +209,16 @@ def add_activity():
 @app.route('/add_data', methods=['POST', 'GET', 'PUT'])
 def add_data_point():
     args = request.args.to_dict()
-    print(args)
-    response = app.response_class(
-        response=json.dumps("OK"),
-        status=200,
-        mimetype='application/json'
-    )
-    return response
-
+    if 'activity' in args:
+        print("Activity exists")
+        activity_id = args['activity']
+        if Activity.exists(activity_id):
+            dp = DataPoint(data = args['data'], activity_id = activity_id)
+            db.session.add(dp)
+            db.commit()
+            return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json')
+        else:
+            return(app.response_class(response=json.dumps("Activity doesnt exist"), status=400, mimetype='application/json')
 
 def to_logo_list_str(alist):
     ret_str = ""

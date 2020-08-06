@@ -99,9 +99,13 @@ class Activity(db.Model):
     open_until = db.Column(db.DateTime, default=datetime.now)
     owner = db.Column(db.Integer, db.ForeignKey('user.id'))
     data_points = db.relationship('DataPoint', backref='activity')
+    # template  = db.Column(db.String(40), default='')
 
     def __repr__(self):
         return 'Activity {}: {}'.format(self.id, self.name)
+    
+    def exists(id):
+        return id in [a.id for a in Activity.query.all()]
 
 
 
