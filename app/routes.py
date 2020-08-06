@@ -193,6 +193,14 @@ def get_open_activities():
     )
     return  response
 
+
+@app.route('/activity', methods=['POST', 'GET'])
+def activity():
+    act_id = request.args.get('activity', type=int)
+    activity = Activity.query.get(act_id)
+    data = activity.data_points
+    return render_template('activity.html', data=data)
+
 @app.route('/add_activity', methods=['POST', 'GET'])
 @login_required
 def add_activity():
@@ -211,14 +219,14 @@ def add_data_point():
     args = request.args.to_dict()
     if 'activity' in args:
         print("Activity exists")
-        activity_id = args['activity']
+        activity_id = int(args['activity'])
         if Activity.exists(activity_id):
             dp = DataPoint(data = args['data'], activity_id = activity_id)
             db.session.add(dp)
-            db.commit()
-            return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json')
+            db.session.commit()
+            return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
         else:
-            return(app.response_class(response=json.dumps("Activity doesnt exist"), status=400, mimetype='application/json')
+            return(app.response_class(response=json.dumps("Activity doesnt exist"), status=400, mimetype='application/json'))
 
 def to_logo_list_str(alist):
     ret_str = ""
