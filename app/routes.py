@@ -7,6 +7,7 @@ from app.forms import LoginForm, RegistrationForm, EditProfileForm, \
     EmptyForm, PostForm, ResetPasswordRequestForm, ResetPasswordForm, AddActivityForm
 from app.models import User, Post, Activity, DataPoint
 from app.email import send_password_reset_email
+import ast
 
 
 @app.before_request
@@ -21,7 +22,6 @@ def before_request():
 @login_required
 def index():
     activities = Activity.query.all()
-    print(activities)
     return render_template('index.html', activities=activities)
 
 
@@ -182,7 +182,7 @@ def unfollow(username):
         return redirect(url_for('index'))
 
 
-@app.route('/get_open_activities')
+@app.route('/open_activities')
 def get_open_activities():
     activities = [[a.id, a.name] for a in Activity.query.all()]
     nl_list  = to_logo_list_str(activities)
@@ -193,13 +193,29 @@ def get_open_activities():
     )
     return  response
 
-
-@app.route('/activity', methods=['POST', 'GET'])
-def activity():
-    act_id = request.args.get('activity', type=int)
+@app.route('/highscore/<act_id>', methods=['POST', 'GET'])
+def highscore(act_id):
     activity = Activity.query.get(act_id)
-    data = activity.data_points
-    return render_template('activity.html', data=data)
+    averages = []
+    for point in activity.data_points:
+        user_dict = {'name' : point.data['name']}
+        user_dict.update(point.data['averages'])
+        averages.append(user_dict)
+    # this is ordered, so this is how they will appear in the high score, left to right
+    table_keys = ['name', 'Population', 'Food Production', 'Cows', 'Pollution', 'Avg. Lifespan', 'Temperature', 'Forest', 'Grass']
+    # make sure to sort these correctly first
+    table_values = []
+    table_values.append(table_keys)
+    user_data = [[ inner[k] for k in table_keys] for inner in averages]
+    print(user_data)
+    table_values.append(list(user_data))
+    print(table_values)
+    return render_template('highscore.html', activity=activity, data=averages, table_data=table_values)
+
+@app.route('/activity/<act_id>', methods=['POST', 'GET'])
+def activity(act_id):
+    activity = Activity.query.get(act_id)
+    return render_template('activity.html', activity=activity)
 
 @app.route('/add_activity', methods=['POST', 'GET'])
 @login_required
@@ -213,15 +229,25 @@ def add_activity():
     return render_template('add_activity.html', form=form)
 
 
+## TODO: move this to a utils class
+def to_json(astr):
+    alist = ast.literal_eval(astr)
+    cleaned_data = {sublist[0] : sublist[1] for sublist in alist}
+    avgs = {}
+    for k,v in cleaned_data.items() :
+        if isinstance(v[1], float):
+            avgs[k] = sum(v) / len(v)
+    cleaned_data['averages'] = avgs
+    return cleaned_data
 
 @app.route('/add_data', methods=['POST', 'GET', 'PUT'])
 def add_data_point():
     args = request.args.to_dict()
     if 'activity' in args:
-        print("Activity exists")
-        activity_id = int(args['activity'])
+        activity_id = int(float(args['activity']))
         if Activity.exists(activity_id):
-            dp = DataPoint(data = args['data'], activity_id = activity_id)
+            jargs = to_json(args['data'])
+            dp = DataPoint(data = jargs, activity_id = activity_id)
             db.session.add(dp)
             db.session.commit()
             return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
