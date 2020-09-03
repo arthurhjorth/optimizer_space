@@ -271,3 +271,17 @@ def to_logo_list_str(alist):
         
 
 
+@app.route('/check_password', methods=['GET'])
+def check_password():
+    print(request.args.to_dict())
+    act_id = request.args.get('activity', type=float)
+    act_id = int(act_id)
+    password = request.args.get('password', type=str)
+    activity = Activity.query.get(act_id)
+    pw_check = password == activity.password
+    response = app.response_class(
+        response=json.dumps(pw_check),
+        status=200,
+        mimetype='application/json'
+    )
+    return  response
