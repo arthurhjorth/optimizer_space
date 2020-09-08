@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, \
-    TextAreaField
+    TextAreaField, SelectField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, \
     Length
 from app.models import User
@@ -14,7 +14,8 @@ class LoginForm(FlaskForm):
 
 class AddActivityForm(FlaskForm):
     name = StringField('Aktivitetens Navn', validators=[DataRequired()])
-    password = StringField('Evt. kodeord')
+    password = StringField('Kodeord (max 40 karakterer)', validators=[DataRequired()])
+    template = SelectField('Hvilken template skal aktiviteten vises i?', validators=[DataRequired()])
     submit = SubmitField('Lav Aktivitet')
 
 

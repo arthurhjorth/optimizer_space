@@ -1,5 +1,6 @@
+import os
 from datetime import datetime
-from flask import render_template, flash, redirect, url_for, request, json
+from flask import render_template, flash, redirect, url_for, request, json, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 from app import app, db
@@ -207,27 +208,45 @@ def highscore(act_id):
     table_values = []
     table_values.append(table_keys)
     user_data = [[ inner[k] for k in table_keys] for inner in averages]
-    print(user_data)
     table_values.append(list(user_data))
-    print(table_values)
     return render_template('highscore.html', activity=activity, data=averages, table_data=table_values)
 
 @app.route('/activity/<act_id>', methods=['POST', 'GET'])
 def activity(act_id):
     activity = Activity.query.get(act_id)
-    return render_template('activity.html', activity=activity)
+    for p in activity.data_points:
+        print(p.data)
+    return render_template('activity_templates/' + activity.template, activity=activity)
 
 @app.route('/add_activity', methods=['POST', 'GET'])
 @login_required
 def add_activity():
     form = AddActivityForm()
+    templates = os.listdir('app/templates/activity_templates')
+    form.template.choices = [(n, templates[n]) for n in range(len(templates))]
     if form.validate_on_submit():
-        act = Activity(name = form.name.data, owner = current_user.id)
+        act = Activity(name = form.name.data, password=form.password.data, owner = current_user.id, template = templates[int(form.template.data)])
         db.session.add(act)
         db.session.commit()
         return redirect(url_for('index'))
     return render_template('add_activity.html', form=form)
 
+@app.route('/get_2d_data', methods=['POST', 'GET'])
+def get_2d_data():
+    print(request.args.to_dict())
+    act_id = request.args.get('act_id')
+    activity = Activity.query.get(act_id)
+    data = []
+    for point in activity.data_points:
+        pdict = {'x' : point.data['x'], 'y' : point.data['y']}
+        data.append(pdict)
+    print(data)
+    return jsonify(data)
+
+@app.route('/test', methods=['POST','GET'])
+def test():
+    print("test")
+    return jsonify({'key' : 'var'})
 
 ## TODO: move this to a utils class
 def to_json(astr):
@@ -243,10 +262,12 @@ def to_json(astr):
 @app.route('/add_data', methods=['POST', 'GET', 'PUT'])
 def add_data_point():
     args = request.args.to_dict()
+    print(args)
     if 'activity' in args:
         activity_id = int(float(args['activity']))
         if Activity.exists(activity_id):
             jargs = to_json(args['data'])
+            # jargs = ast.literal_eval(args['data'])
             dp = DataPoint(data = jargs, activity_id = activity_id)
             db.session.add(dp)
             db.session.commit()

@@ -99,7 +99,8 @@ class Activity(db.Model):
     open_until = db.Column(db.DateTime, default=datetime.now)
     owner = db.Column(db.Integer, db.ForeignKey('user.id'))
     data_points = db.relationship('DataPoint', backref='activity')
-    # template  = db.Column(db.String(40), default='')
+    password = db.Column(db.String(40))
+    template  = db.Column(db.String(60), nullable=False)
 
     def __repr__(self):
         return 'Activity {}: {}'.format(self.id, self.name)
