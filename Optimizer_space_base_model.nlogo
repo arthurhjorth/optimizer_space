@@ -16,10 +16,10 @@ to submit-data [data-list]
 
   let send-data []
   if length data-list = 2 [
-  set send-data (list (list "x" item 0 data-list) (list "y" item 1 data-list))
+  set send-data (list (list "\"x\"" item 0 data-list) (list "\"y\"" item 1 data-list))
   ]
   if length data-list = 3 [
-  set send-data (list (list "x" item 0 data-list) (list "y" item 1 data-list) (list "z" item 2 data-list))
+  set send-data (list (list "\"x\"" item 0 data-list) (list "\"y\"" item 1 data-list) (list "\"z\"" item 2 data-list))
   ]
   ifelse length send-data > 0 [
     show web:make-request "http://localhost:5000/add_data" "GET" (list (list "users" users) (list "data" send-data) (list "activity" activity)) []
