@@ -214,8 +214,6 @@ def highscore(act_id):
 @app.route('/activity/<act_id>', methods=['POST', 'GET'])
 def activity(act_id):
     activity = Activity.query.get(act_id)
-    for p in activity.data_points:
-        print(p.data)
     return render_template('activity_templates/' + activity.template, activity=activity)
 
 @app.route('/add_activity', methods=['POST', 'GET'])
@@ -233,14 +231,13 @@ def add_activity():
 
 @app.route('/get_2d_data', methods=['POST', 'GET'])
 def get_2d_data():
-    print(request.args.to_dict())
+    print('test')
     act_id = request.args.get('act_id')
     activity = Activity.query.get(act_id)
     data = []
     for point in activity.data_points:
         pdict = {'x' : point.data['x'], 'y' : point.data['y']}
         data.append(pdict)
-    print(data)
     return jsonify(data)
 
 @app.route('/test', methods=['POST','GET'])
@@ -259,19 +256,38 @@ def to_json(astr):
     cleaned_data['averages'] = avgs
     return cleaned_data
 
+
+def combine_nl_keys_and_data(keys, values):
+    ks = ast.literal_eval(keys)
+    vs = ast.literal_eval(values)
+    if len(ks) == len(vs):
+        return (True, {ks[n] : vs[n] for n in range(len(ks))})
+    return (false, None)
+
 @app.route('/add_data', methods=['POST', 'GET', 'PUT'])
 def add_data_point():
+    # this takes a dictionary with the following keys:
+    # users string
+    # activity int
+    # keys (as a string)
+    # values (as a string)
+    # keys and values must have same length or we return 400
     args = request.args.to_dict()
-    print(args)
     if 'activity' in args:
         activity_id = int(float(args['activity']))
         if Activity.exists(activity_id):
-            jargs = to_json(args['data'])
-            # jargs = ast.literal_eval(args['data'])
-            dp = DataPoint(data = jargs, activity_id = activity_id)
-            db.session.add(dp)
-            db.session.commit()
-            return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+            jargs = combine_nl_keys_and_data(args['keys'], args['values'])
+            if jargs[0]:
+                data = jargs[1]
+                data.update({'users' : args['users']})
+                print(data)
+                print(activity_id)
+                dp = DataPoint(data = data, activity_id = activity_id)
+                db.session.add(dp)
+                db.session.commit()
+                return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+            else:
+                return(app.response_class(response=json.dumps("Length of keys and values did not match"), status=400, mimetype='application/json'))
         else:
             return(app.response_class(response=json.dumps("Activity doesnt exist"), status=400, mimetype='application/json'))
 

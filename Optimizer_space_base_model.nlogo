@@ -29,6 +29,18 @@ to submit-data [data-list]
   ]
 end
 
+to submit-dictionary [data-list] ;; this takes a dictionary like structure, creates a list of keys and a list of values, and sends them separately
+  while [activity = 0] [choose-activity]
+  while [users = 0] [set-users]
+
+  let keys map [ l -> (word "\"" item 0 l "\"") ] data-list
+  let values map [l -> item 1 l] data-list
+
+
+  show web:make-request "http://localhost:5000/add_data" "GET" (list (list "users" users) (list "keys" keys) (list "values" values) (list "activity" activity)) []
+
+end
+
 
 
 

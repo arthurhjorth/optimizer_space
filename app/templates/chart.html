@@ -45,16 +45,9 @@ $.get('http://localhost:5000/get_2d_data', {'foo' : 'afdasfd', 'act_id' : {{ act
     scatterChart.update();
 });
 }
-
 update_2d_data();
 
 
-// $.get('http://localhost:5000/get_2d_data', {'foo' : 'afdasfd', 'act_id' : {{ activity.id }} }).done(
-//     function(returnedData) {
-//     console.log(scatterChart.data.datasets[0].data)
-//     console.log("test");
-//     scatterChart.data.datasets[0].data = returnedData
-//     scatterChart.update();
-// });
+window.setInterval(function() {update_2d_data();}, 1000);
 
 </script>
