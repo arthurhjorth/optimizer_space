@@ -1,0 +1,66 @@
+
+<canvas id="myChart" width=20% height=20%></canvas>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+
+<div id='myChart'></div>
+<select id='x-select'></select>
+<select id='y-select'></select>
+
+
+
+<script>
+var ctx = document.getElementById('myChart').getContext('2d');
+var scatterChart = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+        datasets: [{
+            label: 'Scatter Dataset',
+            data: [{
+                x: -10,
+                y: 0
+            }, {
+                x: 0,
+                y: 10
+            }, {
+                x: 10,
+                y: 5
+            }]
+        }]
+    },
+    options: {
+        scales: {
+            xAxes: [{
+                type: 'linear',
+                position: 'bottom'
+            }]
+        }
+    }
+});
+
+
+// get selector values
+$.get('http://localhost:5000/get_data_keys', {'act_id' : {{ activity.id }} }).done(
+    function(returnedData) {
+    x= document.getElementById('x-select')
+    y= document.getElementBgId('y-select')
+    
+});
+// get 2d data
+function update_2d_data(){
+$.get('http://localhost:5000/get_2d_data', { 'act_id' : {{ activity.id }} }).done(
+    function(returnedData) {
+    console.log(scatterChart.data.datasets[0].data)
+    console.log("test");
+    scatterChart.data.datasets[0].data = returnedData
+    scatterChart.update();
+});
+}
+update_2d_data();
+
+
+window.setInterval(function() {update_2d_data();}, 1000);
+
+</script>

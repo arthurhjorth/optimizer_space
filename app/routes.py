@@ -229,6 +229,15 @@ def add_activity():
         return redirect(url_for('index'))
     return render_template('add_activity.html', form=form)
 
+@app.route('/get_data_keys', methods=['POST', 'GET'])
+def get_2d_data():
+    act_id = request.args.get('act_id')
+    activity = Activity.query.get(act_id)
+    for point in activity.data_points:
+        pdict = {'x' : point.data['x'], 'y' : point.data['y']}
+        data.append(pdict)
+    return jsonify(data)
+
 @app.route('/get_2d_data', methods=['POST', 'GET'])
 def get_2d_data():
     print('test')
