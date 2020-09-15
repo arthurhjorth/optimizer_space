@@ -214,6 +214,7 @@ def highscore(act_id):
 @app.route('/activity/<act_id>', methods=['POST', 'GET'])
 def activity(act_id):
     activity = Activity.query.get(act_id)
+    print(activity.template)
     return render_template('activity_templates/' + activity.template, activity=activity)
 
 @app.route('/add_activity', methods=['POST', 'GET'])
@@ -229,18 +230,53 @@ def add_activity():
         return redirect(url_for('index'))
     return render_template('add_activity.html', form=form)
 
-@app.route('/get_data_keys', methods=['POST', 'GET'])
-def get_2d_data():
+@app.route('/get_data_keys_and_students', methods=['POST', 'GET'])
+def get_data_keys_and_students():
     act_id = request.args.get('act_id')
     activity = Activity.query.get(act_id)
+    ret_dict = {}
+    students = set()
+    keys = set()
+    for dp in activity.data_points:
+        for k in dp.data.keys():
+            keys.add(k)
+        students.add(dp.data['users'])
+    keys = sorted(list(keys))
+    students = sorted(list(students))
+    ret_dict["students"] = students
+    ret_dict["keys"] = keys
+    print(ret_dict)
+    return jsonify(ret_dict)
+
+
+@app.route('/get_data_keys', methods=['POST', 'GET'])
+def get_data_keys():
+    print("called")
+    act_id = request.args.get('act_id')
+    activity = Activity.query.get(act_id)
+    keys = set()
+    for dp in activity.data_points:
+        for k in dp.data.keys():
+            keys.add(k)
+    keys = sorted(list(keys))
+    print(keys)
+    return jsonify(keys)
+
+@app.route('/get_keyed_data', methods=['POST', 'GET'])
+def get_keyed_data():
+    act_id = request.args.get('act_id')
+    xkey = request.args.get('xkey')
+    ykey = request.args.get('ykey')
+    activity = Activity.query.get(act_id)
+    data = []
     for point in activity.data_points:
-        pdict = {'x' : point.data['x'], 'y' : point.data['y']}
-        data.append(pdict)
+        if xkey in point.data and ykey in point.data:
+            pdict = {'x' : point.data[xkey], 'y' : point.data[ykey]}
+            data.append(pdict)
     return jsonify(data)
 
 @app.route('/get_2d_data', methods=['POST', 'GET'])
 def get_2d_data():
-    print('test')
     act_id = request.args.get('act_id')
     activity = Activity.query.get(act_id)
     data = []
@@ -289,8 +325,6 @@ def add_data_point():
             if jargs[0]:
                 data = jargs[1]
                 data.update({'users' : args['users']})
-                print(data)
-                print(activity_id)
                 dp = DataPoint(data = data, activity_id = activity_id)
                 db.session.add(dp)
                 db.session.commit()

@@ -3,9 +3,8 @@
 </head> 
 
 {{ activity.name }}
-{{ activity.data_points }}
 <div class="content-section" id="chart">
-    {% include 'chart.html' %}
+    {% include 'chart_select.html' %}
 </div>
 
 
@@ -15,7 +14,7 @@
 </script>
 <style type="text/css">
 #chart {
-    margin-left:auto;margin-right:auto;width:200px;height:200px;
+    margin-left:auto;margin-right:auto;width:600px;height:600px;
 }
 </style>
 

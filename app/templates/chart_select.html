@@ -6,8 +6,9 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 
 <div id='myChart'></div>
-<select id='x-select'></select>
-<select id='y-select'></select>
+<<p>x: </p><select id='x-select'></select>
+<p>y: </p><select id='y-select'></select>
+<p>Elever: </p><p>y: </p><select id='y-select'></select>
 
 
 
@@ -40,27 +41,52 @@ var scatterChart = new Chart(ctx, {
     }
 });
 
+var x_select = $("#x-select");
+var y_select = $("#y-select");
 
-// get selector values
-$.get('http://localhost:5000/get_data_keys', {'act_id' : {{ activity.id }} }).done(
-    function(returnedData) {
-    x= document.getElementById('x-select')
-    y= document.getElementBgId('y-select')
-    
-});
-// get 2d data
+
 function update_2d_data(){
-$.get('http://localhost:5000/get_2d_data', { 'act_id' : {{ activity.id }} }).done(
+// $.get('http://localhost:5000/get_keyed_data', {'keys' : get_select_values(), 'act_id' : {{ activity.id }}}).done(
+$.get("http://localhost:5000/get_keyed_data", {xkey : x_select.val(), ykey : y_select.val(), act_id : {{ activity.id }}}).done(
     function(returnedData) {
+    
     console.log(scatterChart.data.datasets[0].data)
-    console.log("test");
     scatterChart.data.datasets[0].data = returnedData
     scatterChart.update();
 });
 }
-update_2d_data();
 
+// get selector values
+$.get('http://localhost:5000/get_data_keys', {'act_id' : {{ activity.id }} }).done(
+    function(returnedData) {
+    console.log("getting keys");
+    console.log(x_select)
+    x= document.getElementById('x-select');
+    y= document.getElementById('y-select');
+    $("#x-select").empty();
+    $("#y-select").empty();
+    for (var i = 0; i < returnedData.length; i++) {
+        var option = document.createElement("option");
+        option.value = returnedData[i];
+        option.text = returnedData[i];
+        x.appendChild(option);
+        var option = document.createElement("option");
+        option.value = returnedData[i];
+        option.text = returnedData[i];
+        y.appendChild(option);
+}
+});
+
+
+
+
+function get_select_values(){
+    var retdict = { x : [x_select.val()], y : [y_select.val()]}
+    console.log(retdict);
+    return(retdict);
+}
 
 window.setInterval(function() {update_2d_data();}, 1000);
+
 
 </script>
