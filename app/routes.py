@@ -262,6 +262,23 @@ def get_data_keys():
     print(keys)
     return jsonify(keys)
 
+@app.route('/get_students_and_assignments', methods=['POST', 'GET'])
+def get_students_and_assignments():
+    act_id = request.args.get('act_id')
+    activity = Activity.query.get(act_id)
+    students = set() 
+    assignments = set()
+    for dp in activity.data_points:
+        assignments.add(dp.data['assignment'])
+        students.add(dp.data['users'])
+    assignments = sorted(list(assignments))
+    students = sorted(list(students))
+    ret_list = []
+    ret_list.append(students)
+    ret_list.append(assignments)
+    print(ret_list)
+    return jsonify(ret_list)
+
 @app.route('/get_keyed_data', methods=['POST', 'GET'])
 def get_keyed_data():
     act_id = request.args.get('act_id')
@@ -272,6 +289,21 @@ def get_keyed_data():
     for point in activity.data_points:
         if xkey in point.data and ykey in point.data:
             pdict = {'x' : point.data[xkey], 'y' : point.data[ykey]}
+            data.append(pdict)
+    return jsonify(data)
+
+@app.route('/get_replay_data', methods=['POST', 'GET'])
+def get_replay_data():
+    act_id = request.args.get('act_id')
+    students = request.args.get('students')
+    assignment = int(request.args.get('assignment'))
+    activity = Activity.query.get(act_id)
+    data = []
+    for point in activity.data_points:
+        print(assignment, point.data['assignment'])
+        if point.data['users'] == students and int(point.data['assignment']) == assignment:
+            print(point.data)
+            pdict = {'x' : point.data['x'], 'y' : point.data['y'], 'label' : point.data['attempt']}
             data.append(pdict)
     return jsonify(data)
 
@@ -318,6 +350,7 @@ def add_data_point():
     # values (as a string)
     # keys and values must have same length or we return 400
     args = request.args.to_dict()
+    print(args)
     if 'activity' in args:
         activity_id = int(float(args['activity']))
         if Activity.exists(activity_id):

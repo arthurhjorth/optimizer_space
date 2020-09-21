@@ -43,7 +43,6 @@ end
 
 
 
-
 to set-users
   set users user-input "Hvad hedder I?"
 end
