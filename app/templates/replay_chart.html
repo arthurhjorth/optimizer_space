@@ -48,8 +48,13 @@ function update_2d_data(){
 // $.get('http://localhost:5000/get_keyed_data', {'keys' : get_select_values(), 'act_id' : {{ activity.id }}}).done(
 $.get("http://localhost:5000/get_replay_data", {students : student_select.val(), assignment : assignment_select.val(), act_id : {{ activity.id }}}).done(
     function(returnedData) {
-    console.log(returnedData)
-    scatterChart.data.datasets[0].data = returnedData
+    scatterChart.data.datasets = [];
+    for (var i = 0; i < returnedData.length; i++){
+        datapoint = {data : returnedData[i], label: i};
+        console.log(datapoint)
+        scatterChart.data.datasets.push(datapoint)
+    }
+
     scatterChart.update();
 });
 }
@@ -86,7 +91,9 @@ function get_select_values(){
     return(retdict);
 }
 
-window.setInterval(function() {update_2d_data();}, 1000);
 
+$("#assignment-select").change(function(){
+    update_2d_data();
+})
 
 </script>

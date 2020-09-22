@@ -292,6 +292,12 @@ def get_keyed_data():
             data.append(pdict)
     return jsonify(data)
 
+
+def calculuate_function(afunction_str):
+    lam = lambda x: eval(afunction_str)
+    func_result = [{'x' : n, 'y' : lam(n)} for n in range(-200, 200)]
+    return func_result
+
 @app.route('/get_replay_data', methods=['POST', 'GET'])
 def get_replay_data():
     act_id = request.args.get('act_id')
@@ -299,13 +305,23 @@ def get_replay_data():
     assignment = int(request.args.get('assignment'))
     activity = Activity.query.get(act_id)
     data = []
-    for point in activity.data_points:
+    func_string = "" # save it here so we can call it just once later
+    for point in activity.data_points: 
         print(assignment, point.data['assignment'])
         if point.data['users'] == students and int(point.data['assignment']) == assignment:
             print(point.data)
-            pdict = {'x' : point.data['x'], 'y' : point.data['y'], 'label' : point.data['attempt']}
+            pdict = {'x' : point.data['x'], 'y' : point.data['y'], 'attempt' : point.data['attempt']}
+            func_string = point.data['function']
             data.append(pdict)
-    return jsonify(data)
+    
+    func_points = calculuate_function(func_string)
+    # sorter dem nu
+    data = sorted(data, key=lambda x: x['attempt'])
+    # add a set of labels:
+    labels = ["Attempt " + str(n) for n in range(len(data))]
+    # get real underlying function
+    return jsonify(data, labels, func_points)
+
 
 @app.route('/get_2d_data', methods=['POST', 'GET'])
 def get_2d_data():

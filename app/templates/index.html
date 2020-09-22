@@ -4,6 +4,6 @@
 {% block app_content %}
     <h1>Hi, {{ current_user.username }}!</h1>
     {% for activity in activities %}
-    {{ activity.name }}
+    <a href="activity/{{activity.id}}">{{activity.name}}</a>
     {% endfor %}
 {% endblock %}
