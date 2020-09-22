@@ -1,0 +1,99 @@
+
+<canvas id="myChart" width=20% height=20%></canvas>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+
+<div id='myChart'></div>
+<<p>Elever: </p><select id='students-select'></select>
+<<p>Opgave: </p><select id='assignment-select'></select>
+
+
+
+<script>
+var ctx = document.getElementById('myChart').getContext('2d');
+var scatterChart = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+        datasets: [{
+            label: 'Scatter Dataset',
+            data: [{
+                x: -10,
+                y: 0
+            }, {
+                x: 0,
+                y: 10
+            }, {
+                x: 10,
+                y: 5
+            }]
+        }]
+    },
+    options: {
+        scales: {
+            xAxes: [{
+                type: 'linear',
+                position: 'bottom'
+            }]
+        }
+    }
+});
+
+var student_select =$("#students-select")
+var assignment_select =$("#assignment-select")
+
+
+function update_2d_data(){
+// $.get('http://localhost:5000/get_keyed_data', {'keys' : get_select_values(), 'act_id' : {{ activity.id }}}).done(
+$.get("http://localhost:5000/get_replay_data", {students : student_select.val(), assignment : assignment_select.val(), act_id : {{ activity.id }}}).done(
+    function(returnedData) {
+    scatterChart.data.datasets = [];
+    for (var i = 0; i < returnedData.length; i++){
+        datapoint = {data : returnedData[i], label: i};
+        console.log(datapoint)
+        scatterChart.data.datasets.push(datapoint)
+    }
+
+    scatterChart.update();
+});
+}
+
+// get selector values
+$.get('http://localhost:5000/get_students_and_assignments', {'act_id' : {{ activity.id }} }).done(
+    function(returnedData) {
+    console.log("getting students");
+    console.log(returnedData);
+    students = document.getElementById('students-select');
+    assignments = document.getElementById('assignment-select');
+    $("#students-select").empty();
+    $("#assignment-select").empty();
+    for (var i = 0; i < returnedData[0].length; i++) {
+        var option = document.createElement("option");
+        option.value = returnedData[0][i];
+        option.text = returnedData[0][i];
+        students.appendChild(option);
+    }
+    for (var i = 0; i < returnedData[1].length; i++) {
+        var option = document.createElement("option");
+        option.value = returnedData[1][i];
+        option.text = returnedData[1][i];
+        assignments.appendChild(option);
+}
+});
+
+
+
+
+function get_select_values(){
+    var retdict = { students : [student_select.val()], assignment : [assignments_select.val()]}
+    console.log(retdict);
+    return(retdict);
+}
+
+
+$("#assignment-select").change(function(){
+    update_2d_data();
+})
+
+</script>

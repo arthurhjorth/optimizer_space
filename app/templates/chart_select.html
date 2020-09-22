@@ -51,6 +51,12 @@ $.get("http://localhost:5000/get_keyed_data", {xkey : x_select.val(), ykey : y_s
     function(returnedData) {
     
     console.log(scatterChart.data.datasets[0].data)
+    for (var i = 0; i < returnedData.length; i++){
+        point = { x : returnedData[n]['x'], y : returnedData[n]['y']};
+
+        scatterChart.data.datasets[n].data = point;
+        scatterchart.data.datasets[n].label = "attempt" + n;
+    }
     scatterChart.data.datasets[0].data = returnedData
     scatterChart.update();
 });
