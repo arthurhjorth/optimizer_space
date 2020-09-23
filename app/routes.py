@@ -214,6 +214,7 @@ def highscore(act_id):
 @app.route('/activity/<act_id>', methods=['POST', 'GET'])
 def activity(act_id):
     activity = Activity.query.get(act_id)
+    # return render_template('activity_templates/' + 'activity.html', activity=activity)
     return render_template('activity_templates/' + activity.template, activity=activity)
 
 @app.route('/add_activity', methods=['POST', 'GET'])
@@ -287,6 +288,23 @@ def get_keyed_data():
             data.append(pdict)
     return jsonify(data)
 
+@app.route('/get_heatmap_data', methods=['POST', 'GET'])
+def get_heatmap_data():
+    act_id = request.args.get('act_id')
+    measurement = request.args.get('measurement')
+    student = request.args.get('student')
+    activity = Activity.query.get(act_id)
+    data = []
+    max_v = 0
+    for point in activity.data_points:
+        if point.data['measurement'] == measurement and (student == "all" or student == point.data['users']):
+            pdict = {'x' : point.data['x'], 'y' : point.data['y'], 'v' : point.data['v']}
+            if point.data['v'] > max_v:
+                max_v = point.data['v']
+            data.append(pdict)
+    return jsonify(data, max_v)
+
+
 @app.route('/get_measurement_data', methods=['POST', 'GET'])
 def get_measurement_data():
     act_id = request.args.get('act_id')
@@ -307,12 +325,12 @@ def get_measurement_keys_and_students():
     act_id = request.args.get('act_id')
     activity = Activity.query.get(act_id)
     students = set()
-    students.add("all")
     measurements = set()
     for dp in activity.data_points:
         measurements.add(dp.data['measurement'])
         students.add(dp.data['users'])
     students = sorted(list(students))
+    students.append("all")
     measurements = sorted(list(measurements))
     return jsonify(measurements, students)
 

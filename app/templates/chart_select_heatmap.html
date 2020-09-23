@@ -5,28 +5,42 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 
+
+<!-- <script type="text/javascript" href="{{ url_for('static', filename='bootstrap.min.css') }}"> -->
+<script type="text/javascript" src="{{ url_for('static', filename='chartjs-chart-matrix.js') }}"></script>
+
 <p>Elever: </p><select id='students-select'></select>
 <p>Measurement: </p><select id='measurement-select'></select>
 <div id='myChart'></div>
 
 
 <script>
+var w = 5;
+var h = 5;
+var max_v = 400;
+
 var ctx = document.getElementById('myChart').getContext('2d');
-var scatterChart = new Chart(ctx, {
-    type: 'scatter',
+var heatmap = new Chart(ctx, {
+    type: 'matrix',
     data: {
         datasets: [{
-            label: 'Scatter Dataset',
-            data: [{
-                x: -10,
-                y: 0
-            }, {
-                x: 0,
-                y: 10
-            }, {
-                x: 10,
-                y: 5
-            }]
+            label: 'My Matrix',
+            data: [
+            ],
+            backgroundColor: function(ctx) {
+                var value = ctx.dataset.data[ctx.dataIndex].v;
+                // var alpha = value / 1000;
+                // var alpha = (value - 5) / 40;
+                var alpha = (value / max_v);
+                console.log(max_v, value, alpha);
+                return Color('green').alpha(alpha).rgbString();
+            },
+            width: function(ctx){
+                return w;
+            },
+            height: function(ctx){
+                return h;
+            },
         }]
     },
     options: {
@@ -36,14 +50,16 @@ var scatterChart = new Chart(ctx, {
         scales: {
             xAxes: [{
                 ticks: {
-                    min : 0
+                    min : 0,
+                    max : 30
                 },
                 type: 'linear',
                 position: 'bottom',
             }],
             yAxes: [{
                 ticks: {
-                    min : 0
+                    min : 0,
+                    max : 30
                 },
                 type: 'linear',
             }],
@@ -51,19 +67,20 @@ var scatterChart = new Chart(ctx, {
     }
 });
 
+
+
 var measurement_select = $("#measurement-select");
 var students_select = $("#students-select");
 
 
 function update_2d_data(){
-// $.get('http://localhost:5000/get_keyed_data', {'keys' : get_select_values(), 'act_id' : {{ activity.id }}}).done(
-$.get("/get_measurement_data", {measurement : measurement_select.val(), student : students_select.val(), act_id : {{ activity.id }}}).done(
+$.get("/get_heatmap_data", {measurement : measurement_select.val(), student : students_select.val(), act_id : {{ activity.id }}}).done(
     function(returnedData) {
-    
-    scatterChart.data.datasets = [];
-    datapoint = {data : returnedData};
-    scatterChart.data.datasets.push(datapoint);
-    scatterChart.update()
+    heatmap.data.datasets[0].data = returnedData[0];
+    // datapoint = {data : returnedData[0]};
+    max_v = returnedData[1];
+    // heatmap.data.datasets.push(datapoint);
+    heatmap.update()
 
 
 });
