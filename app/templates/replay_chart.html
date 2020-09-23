@@ -18,23 +18,25 @@ var scatterChart = new Chart(ctx, {
     data: {
         datasets: [{
             label: 'Scatter Dataset',
-            data: [{
-                x: -10,
-                y: 0
-            }, {
-                x: 0,
-                y: 10
-            }, {
-                x: 10,
-                y: 5
-            }]
+            data: [
+            ]
         }]
     },
     options: {
         scales: {
             xAxes: [{
+                ticks: {
+                    max : 200,
+                    min : -200
+                },
                 type: 'linear',
-                position: 'bottom'
+                position: 'bottom',
+            }],
+            yAxes: [{
+                ticks: {
+                    max : 200,
+                    min : -200
+                }
             }]
         }
     }
@@ -45,16 +47,16 @@ var assignment_select =$("#assignment-select")
 
 
 function update_2d_data(){
-// $.get('http://localhost:5000/get_keyed_data', {'keys' : get_select_values(), 'act_id' : {{ activity.id }}}).done(
 $.get("http://localhost:5000/get_replay_data", {students : student_select.val(), assignment : assignment_select.val(), act_id : {{ activity.id }}}).done(
     function(returnedData) {
     scatterChart.data.datasets = [];
     for (var i = 0; i < returnedData.length; i++){
-        datapoint = {data : returnedData[i], label: i};
+        datapoint = {data : returnedData[i]};
         console.log(datapoint)
         scatterChart.data.datasets.push(datapoint)
     }
 
+    scatterChart.data.datasets[0].pointBackgroundColor = ["rgba(0, 0, 255, .2)", "rgba(0, 0, 255, .4)", "rgba(0, 0, 255, .6)", "rgba(0, 0, 255, 0.8)", "rgba(0, 0, 255, 1)", "rgba(255, 0, 0, 1)" ];
     scatterChart.update();
 });
 }
@@ -95,5 +97,9 @@ function get_select_values(){
 $("#assignment-select").change(function(){
     update_2d_data();
 })
+
+document.onload = function() {
+    update_2d_data();
+};
 
 </script>

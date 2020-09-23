@@ -293,10 +293,6 @@ def get_keyed_data():
     return jsonify(data)
 
 
-def calculuate_function(afunction_str):
-    lam = lambda x: eval(afunction_str)
-    func_result = [{'x' : n, 'y' : lam(n)} for n in range(-200, 200)]
-    return func_result
 
 @app.route('/get_replay_data', methods=['POST', 'GET'])
 def get_replay_data():
@@ -311,16 +307,15 @@ def get_replay_data():
         if point.data['users'] == students and int(point.data['assignment']) == assignment:
             print(point.data)
             pdict = {'x' : point.data['x'], 'y' : point.data['y'], 'attempt' : point.data['attempt']}
-            func_string = point.data['function']
+            # func_string = point.data['function']
             data.append(pdict)
     
-    func_points = calculuate_function(func_string)
     # sorter dem nu
     data = sorted(data, key=lambda x: x['attempt'])
     # add a set of labels:
     labels = ["Attempt " + str(n) for n in range(len(data))]
     # get real underlying function
-    return jsonify(data, labels, func_points)
+    return jsonify(data, labels)
 
 
 @app.route('/get_2d_data', methods=['POST', 'GET'])
