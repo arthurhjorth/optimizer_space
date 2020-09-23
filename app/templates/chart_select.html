@@ -5,11 +5,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 
+<p>Elever: </p><select id='students-select'></select>
+<p>Measurement: </p><select id='measurement-select'></select>
 <div id='myChart'></div>
-<<p>x: </p><select id='x-select'></select>
-<p>y: </p><select id='y-select'></select>
-<p>Elever: </p><p>y: </p><select id='y-select'></select>
-
 
 
 <script>
@@ -32,54 +30,62 @@ var scatterChart = new Chart(ctx, {
         }]
     },
     options: {
+        animation: {
+            duration : 0
+        },
         scales: {
             xAxes: [{
+                ticks: {
+                    min : 0
+                },
                 type: 'linear',
-                position: 'bottom'
-            }]
+                position: 'bottom',
+            }],
         }
     }
 });
 
-var x_select = $("#x-select");
-var y_select = $("#y-select");
+var measurement_select = $("#measurement-select");
+var students_select = $("#students-select");
 
 
 function update_2d_data(){
 // $.get('http://localhost:5000/get_keyed_data', {'keys' : get_select_values(), 'act_id' : {{ activity.id }}}).done(
-$.get("http://localhost:5000/get_keyed_data", {xkey : x_select.val(), ykey : y_select.val(), act_id : {{ activity.id }}}).done(
+$.get("/get_measurement_data", {measurement : measurement_select.val(), student : students_select.val(), act_id : {{ activity.id }}}).done(
     function(returnedData) {
     
-    console.log(scatterChart.data.datasets[0].data)
-    for (var i = 0; i < returnedData.length; i++){
-        point = { x : returnedData[n]['x'], y : returnedData[n]['y']};
+    scatterChart.data.datasets = [];
+    datapoint = {data : returnedData};
+    scatterChart.data.datasets.push(datapoint);
+    scatterChart.update()
 
-        scatterChart.data.datasets[n].data = point;
-        scatterchart.data.datasets[n].label = "attempt" + n;
-    }
-    scatterChart.data.datasets[0].data = returnedData
-    scatterChart.update();
+    // scatterChart.data.datasets = [];
+    // for (var i = 0; i < returnedData.length; i++){
+    //     datapoint = {data : returnedData[i]};
+    //     scatterChart.data.datasets.push(datapoint)
+    // }
+
 });
 }
 
 // get selector values
-$.get('http://localhost:5000/get_data_keys', {'act_id' : {{ activity.id }} }).done(
+$.get('/get_measurement_keys_and_students', {'act_id' : {{ activity.id }} }).done(
     function(returnedData) {
-    console.log("getting keys");
-    console.log(x_select)
-    x= document.getElementById('x-select');
-    y= document.getElementById('y-select');
+    s= document.getElementById('students-select');
+    m= document.getElementById('measurement-select');
     $("#x-select").empty();
     $("#y-select").empty();
-    for (var i = 0; i < returnedData.length; i++) {
+    for (var i = 0; i < returnedData[0].length; i++) {
         var option = document.createElement("option");
-        option.value = returnedData[i];
-        option.text = returnedData[i];
-        x.appendChild(option);
+        option.value = returnedData[0][i];
+        option.text = returnedData[0][i];
+        m.appendChild(option);
+    }
+    for (var i = 0; i < returnedData[1].length; i++) {
         var option = document.createElement("option");
-        option.value = returnedData[i];
-        option.text = returnedData[i];
-        y.appendChild(option);
+        option.value = returnedData[1][i];
+        option.text = returnedData[1][i];
+        s.appendChild(option);
 }
 });
 

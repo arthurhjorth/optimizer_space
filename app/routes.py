@@ -214,7 +214,6 @@ def highscore(act_id):
 @app.route('/activity/<act_id>', methods=['POST', 'GET'])
 def activity(act_id):
     activity = Activity.query.get(act_id)
-    print(activity.template)
     return render_template('activity_templates/' + activity.template, activity=activity)
 
 @app.route('/add_activity', methods=['POST', 'GET'])
@@ -245,13 +244,11 @@ def get_data_keys_and_students():
     students = sorted(list(students))
     ret_dict["students"] = students
     ret_dict["keys"] = keys
-    print(ret_dict)
     return jsonify(ret_dict)
 
 
 @app.route('/get_data_keys', methods=['POST', 'GET'])
 def get_data_keys():
-    print("called")
     act_id = request.args.get('act_id')
     activity = Activity.query.get(act_id)
     keys = set()
@@ -259,7 +256,6 @@ def get_data_keys():
         for k in dp.data.keys():
             keys.add(k)
     keys = sorted(list(keys))
-    print(keys)
     return jsonify(keys)
 
 @app.route('/get_students_and_assignments', methods=['POST', 'GET'])
@@ -276,7 +272,6 @@ def get_students_and_assignments():
     ret_list = []
     ret_list.append(students)
     ret_list.append(assignments)
-    print(ret_list)
     return jsonify(ret_list)
 
 @app.route('/get_keyed_data', methods=['POST', 'GET'])
@@ -292,6 +287,34 @@ def get_keyed_data():
             data.append(pdict)
     return jsonify(data)
 
+@app.route('/get_measurement_data', methods=['POST', 'GET'])
+def get_measurement_data():
+    act_id = request.args.get('act_id')
+    measurement = request.args.get('measurement')
+    student = request.args.get('student')
+    activity = Activity.query.get(act_id)
+    data = []
+    for point in activity.data_points:
+        if point.data['measurement'] == measurement and (student == "all" or student == point.data['users']):
+            pdict = {'x' : point.data['x'], 'y' : point.data['y']}
+            data.append(pdict)
+    return jsonify(data)
+
+
+
+@app.route('/get_measurement_keys_and_students', methods=['POST', 'GET'])
+def get_measurement_keys_and_students():
+    act_id = request.args.get('act_id')
+    activity = Activity.query.get(act_id)
+    students = set()
+    students.add("all")
+    measurements = set()
+    for dp in activity.data_points:
+        measurements.add(dp.data['measurement'])
+        students.add(dp.data['users'])
+    students = sorted(list(students))
+    measurements = sorted(list(measurements))
+    return jsonify(measurements, students)
 
 
 @app.route('/get_replay_data', methods=['POST', 'GET'])
@@ -303,9 +326,7 @@ def get_replay_data():
     data = []
     func_string = "" # save it here so we can call it just once later
     for point in activity.data_points: 
-        print(assignment, point.data['assignment'])
         if point.data['users'] == students and int(point.data['assignment']) == assignment:
-            print(point.data)
             pdict = {'x' : point.data['x'], 'y' : point.data['y'], 'attempt' : point.data['attempt']}
             # func_string = point.data['function']
             data.append(pdict)
@@ -330,7 +351,6 @@ def get_2d_data():
 
 @app.route('/test', methods=['POST','GET'])
 def test():
-    print("test")
     return jsonify({'key' : 'var'})
 
 ## TODO: move this to a utils class
@@ -361,7 +381,6 @@ def add_data_point():
     # values (as a string)
     # keys and values must have same length or we return 400
     args = request.args.to_dict()
-    print(args)
     if 'activity' in args:
         activity_id = int(float(args['activity']))
         if Activity.exists(activity_id):
@@ -397,7 +416,6 @@ def to_logo_list_str(alist):
 
 @app.route('/check_password', methods=['GET'])
 def check_password():
-    print(request.args.to_dict())
     act_id = request.args.get('activity', type=float)
     act_id = int(act_id)
     password = request.args.get('password', type=str)
