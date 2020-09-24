@@ -319,6 +319,17 @@ def get_measurement_data():
     return jsonify(data)
 
 
+@app.route('/submit_response', methods=['POST', 'GET'])
+def submit_response():
+    print(request.args.to_dict())
+    if "response" in request.args.to_dict().keys():
+        with open("responses.txt", "a") as outf:
+            outf.write(json.dumps(request.args.to_dict()))
+            outf.write("\n")
+        return(app.response_class(response=json.dumps("OK"), status=200, mimetype='application/json'))
+    else:
+        return(app.response_class(response=json.dumps("didnt work"), status=400, mimetype='application/json'))
+
 
 @app.route('/get_measurement_keys_and_students', methods=['POST', 'GET'])
 def get_measurement_keys_and_students():
